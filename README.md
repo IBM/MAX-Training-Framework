@@ -7,12 +7,12 @@ You can install this package from PyPI or source code.
 
 ### Installing from PyPI
 
-The package have not been published yet.
+The package has not been published yet.
 
 ### Installing from source code
 
 ```
-$ git https://github.com/IBM/Max-Training-Framework
+$ git clone https://github.com/IBM/Max-Training-Framework
 $ cd Max-Training-Framework
 $ pip install .
 ```
