@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/IBM/Max-Training-Framework.svg?branch=master)](https://travis-ci.com/IBM/Max-Training-Framework) [![PyPI release](https://img.shields.io/pypi/v/max-training-framework.svg)](https://pypi.org/project/max-training-framework/) ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/max-training-framework)
+[![Build Status](https://travis-ci.com/IBM/MAX-Training-Framework.svg?branch=master)](https://travis-ci.com/IBM/Max-Training-Framework) [![PyPI release](https://img.shields.io/pypi/v/max-training-framework.svg)](https://pypi.org/project/max-training-framework/) ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/max-training-framework)
 
 ## Installation
 
