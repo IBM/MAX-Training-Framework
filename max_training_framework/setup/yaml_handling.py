@@ -15,7 +15,7 @@
 #
 
 import sys
-from max_training_framework.utils.cos import COSWrapper
+from utils.cos import COSWrapper
 import glob
 import os
 
@@ -37,6 +37,8 @@ class YAMLHandler:
         self.secret_access_key = secret_access_key
         self.cfg_key_prefix = cfg_key_prefix
         self.cos = COSWrapper(self.access_key, self.secret_access_key)
+        self.folders_to_check = ['data/**/*', 'assets/**/*',
+                                 'initial_model/**/*']
 
     def data_upload(self, bucket_name, path):
         """
@@ -55,7 +57,8 @@ class YAMLHandler:
             key_prefix = self.cfg_key_prefix
         else:
             key_prefix = None
-        for file in glob.iglob(path + '/**/*', recursive=True):
+        for file in glob.iglob(os.path.join(path, '**/*'),
+                               recursive=True):
             if file in ignore_list:
                 continue
             if os.path.isfile(file):
@@ -80,15 +83,22 @@ class YAMLHandler:
         :return: local data directory path
         """
         while True:
-            loc_dir = input("[PROMPT] Provided path is not a "
-                            "directory. Enter path again: ")
+            loc_dir = input("[PROMPT] Provide a directory path from where"
+                            " the data needs to be uploaded: ")
             if loc_dir == '':
                 print("[MESSAGE] 'None' provided as input. "
-                      "Please provide directory path.")
+                      "Please provide a directory path.")
                 continue
             elif not os.path.isdir(loc_dir):
                 print('[MESSAGE] Error. "{}" is not a directory '
                       'or cannot be accessed.'.
+                      format(loc_dir))
+                continue
+            elif True not in [os.path.isfile(i) for folder_path in
+                              self.folders_to_check for i in glob.glob(
+                              os.path.join(loc_dir, folder_path),
+                              recursive=True)]:
+                print('[MESSAGE] Error. "{}" does not contain files.'.
                       format(loc_dir))
                 continue
             else:
@@ -119,12 +129,25 @@ class YAMLHandler:
             if user_data_opt == '':
                 user_data_opt = self.cfg_loc_path
             if not os.path.isdir(user_data_opt):
+                print('[MESSAGE] Error. "{}" is not a directory '
+                      'or cannot be accessed.'.
+                      format(user_data_opt))
                 local_directory = self.get_directory()
                 return self.data_upload(
                         bucket_name, local_directory), local_directory
             else:
-                return self.data_upload(bucket_name, user_data_opt), \
-                       user_data_opt
+                if True not in [os.path.isfile(i) for folder_path in
+                                self.folders_to_check for i in glob.glob(
+                                os.path.join(user_data_opt, folder_path),
+                                recursive=True)]:
+                    print('[MESSAGE] Error. "{}" does not contain files.'.
+                          format(user_data_opt))
+                    local_directory = self.get_directory()
+                    return self.data_upload(
+                        bucket_name, local_directory), local_directory
+                else:
+                    return self.data_upload(bucket_name, user_data_opt), \
+                        user_data_opt
         else:
             # Steps if local directory path has not been configured.
             print("[PROMPT] Local directory path from where input data needs "
