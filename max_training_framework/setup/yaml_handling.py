@@ -15,7 +15,7 @@
 #
 
 import sys
-from utils.cos import COSWrapper
+from max_training_framework.utils.cos import COSWrapper
 import glob
 import os
 
