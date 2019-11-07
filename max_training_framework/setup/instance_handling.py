@@ -273,7 +273,7 @@ class MainHandler:
                             continue
                         else:
                             break
-                    resource_instance_id, apikey, \
+                    resource_instance_id, apikey,\
                         access_key, secret_access_key = \
                         self.ins_obj.cos_key_create(
                             cos_key,
