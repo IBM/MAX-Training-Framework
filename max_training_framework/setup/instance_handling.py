@@ -293,16 +293,20 @@ class MainHandler:
                         try:
                             # Extract necessary environment variables
                             # from the credentials.
-                            resource_instance_id = obj_key_details[
-                                'credentials']['resource_instance_id']
+                            resource_instance_id = \
+                                obj_key_details.get('credentials')\
+                                               .get('resource_instance_id')
                             apikey = \
-                                obj_key_details['credentials']['apikey']
+                                obj_key_details.get('credentials')\
+                                               .get('apikey')
                             access_key = \
-                                obj_key_details['credentials'][
-                                    'cos_hmac_keys']['access_key_id']
+                                obj_key_details.get('credentials')\
+                                               .get('cos_hmac_keys')\
+                                               .get('access_key_id')
                             secret_access_key = \
-                                obj_key_details['credentials'][
-                                    'cos_hmac_keys']['secret_access_key']
+                                obj_key_details.get('credentials')\
+                                               .get('cos_hmac_keys')\
+                                               .get('secret_access_key')
                             return resource_instance_id, apikey, \
                                 access_key, secret_access_key
                         except KeyError:
