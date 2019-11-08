@@ -86,8 +86,6 @@ class YAMLHandler:
             loc_dir = input("[PROMPT] Provide a directory path from where"
                             " the data needs to be uploaded: ")
             if loc_dir == '':
-                print("[MESSAGE] 'None' provided as input. "
-                      "Please provide a directory path.")
                 continue
             elif not os.path.isdir(loc_dir):
                 print('[MESSAGE] Error. "{}" is not a directory '
