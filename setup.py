@@ -6,12 +6,12 @@ with open('README.md') as readme:
 setup(
   name='max-training-framework',
   packages=find_packages(),
-  version='0.1.0',
+  version='0.1.1',
   license='Apache-2.0',
   description='Training framework for the Model Asset Exchange',
   long_description=README,
   long_description_content_type='text/markdown',
-  author='Patrick Titzler',
+  author='CODAIT',
   author_email='ptitzler@us.ibm.com',
   url='https://github.com/IBM/Max-Training-Framework',
   keywords=['deep learning'],
@@ -23,7 +23,7 @@ setup(
   ],
   include_package_data=True,
   classifiers=[
-    'Development Status :: 4 - Beta',
+    'Development Status :: 5 - Production/Stable',
     'License :: OSI Approved :: Apache Software License',
     'Programming Language :: Python :: 3.6',
     'Programming Language :: Python :: 3.7'
