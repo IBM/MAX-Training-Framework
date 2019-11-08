@@ -299,7 +299,8 @@ class MainHandler:
                                 obj_key_details.get('credentials')\
                                                .get('resource_instance_id')
                             apikey = \
-                                obj_key_details['credentials']['apikey']
+                                obj_key_details.get('credentials')\
+                                               .get('apikey')
                             access_key = \
                                 obj_key_details.get('credentials')\
                                                .get('cos_hmac_keys')\
