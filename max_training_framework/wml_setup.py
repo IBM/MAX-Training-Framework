@@ -199,10 +199,7 @@ def do_setup():
                                     local_directory, result_bucket_name,
                                     compute_config)
         if config_result:
-            if sys.platform.startswith('win'):
-                os_run_cmd = 'python train_max_model'
-            else:
-                os_run_cmd = './train_max_model'
+            os_run_cmd = 'python train_max_model.py'
 
             next_steps = """
     *-------------------------------------------------------------------------*
@@ -346,10 +343,7 @@ def do_setup():
                 print('-------------------------------------------------------'
                       '-----------------------')
 
-            if sys.platform.startswith('win'):
-                os_run_cmd = 'python train_max_model'
-            else:
-                os_run_cmd = './train_max_model'
+            os_run_cmd = 'python train_max_model.py'
 
             next_steps = """
     *-------------------------------------------------------------------------*
