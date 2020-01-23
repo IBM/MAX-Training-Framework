@@ -580,14 +580,20 @@ def do_train():
         }
 
         print('Training configuration summary:')
-        print(' Training run name     : {}'
+        print(' Training run name          : {}'
               .format(config['training_run_name']))
-        print(' Training data bucket  : {}'
-              .format(config['training_bucket']))
-        print(' Results bucket        : {}'
-              .format(config['results_bucket']))
-        print(' Model-building archive: {}'
+        print(' Training data bucket       : {} ({})'
+              .format(config['training_bucket'],
+                      config['cos_endpoint_url']))
+        print(' Results bucket             : {} ({})'
+              .format(config['results_bucket'],
+                      config['cos_endpoint_url']))
+        print(' Model-building archive     : {}'
               .format(config['model_code_archive']))
+        print(' Watson Machine Learning URL: {}'
+              .format(os.environ['ML_ENV']))
+        print(' Compute configuration       : {}'
+              .format(config['training_run_compute_configuration_name']))
 
         try:
             training_guid = w.start_training(
