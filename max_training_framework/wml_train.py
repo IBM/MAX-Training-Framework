@@ -199,7 +199,8 @@ def do_train():
         try:
             # instantiate Cloud Object Storage wrapper
             cw = COSWrapper(os.environ['AWS_ACCESS_KEY_ID'],
-                            os.environ['AWS_SECRET_ACCESS_KEY'])
+                            os.environ['AWS_SECRET_ACCESS_KEY'],
+                            config['cos_endpoint_url'])
         except COSWrapperError as cwe:
             print('Error. Cloud Object Storage preparation failed: {}'
                   .format(cwe))
@@ -252,7 +253,8 @@ def do_train():
         try:
             # instantiate the Cloud Object Storage wrapper
             cw = COSWrapper(os.environ['AWS_ACCESS_KEY_ID'],
-                            os.environ['AWS_SECRET_ACCESS_KEY'])
+                            os.environ['AWS_SECRET_ACCESS_KEY'],
+                            config['cos_endpoint_url'])
 
             print(' Verifying that training results bucket "{}" exists. '
                   ' It will be created if necessary ...'
