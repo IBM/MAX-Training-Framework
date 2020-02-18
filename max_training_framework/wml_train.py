@@ -592,7 +592,7 @@ def do_train():
               .format(config['model_code_archive']))
         print(' Watson Machine Learning URL: {}'
               .format(os.environ['ML_ENV']))
-        print(' Compute configuration       : {}'
+        print(' Compute configuration      : {}'
               .format(config['training_run_compute_configuration_name']))
 
         try:
