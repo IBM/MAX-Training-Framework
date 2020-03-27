@@ -18,6 +18,7 @@ from .debug import debug
 
 import json
 import re
+from urllib.parse import urlparse
 from watson_machine_learning_client import WatsonMachineLearningAPIClient
 from watson_machine_learning_client.wml_client_error import ApiRequestFailure
 
@@ -96,6 +97,16 @@ class WMLWrapper:
         Initializer
 
         """
+
+        # verify that the specified WML service supports
+        # the deep learning functionality we want to use
+        # Current list (as of 01/2020): 'us-south' and 'eu-gb'
+        h = urlparse(url).hostname
+        if len([sh for sh in ['us-south', 'eu-gb'] if h.startswith(sh)]) == 0:
+            raise WMLWrapperError(
+                'Error. WML service location "{}" does not '
+                'provide the required training functionality.'
+                .format(h))
 
         try:
             self.client = WatsonMachineLearningAPIClient({

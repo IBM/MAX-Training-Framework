@@ -199,7 +199,8 @@ def do_train():
         try:
             # instantiate Cloud Object Storage wrapper
             cw = COSWrapper(os.environ['AWS_ACCESS_KEY_ID'],
-                            os.environ['AWS_SECRET_ACCESS_KEY'])
+                            os.environ['AWS_SECRET_ACCESS_KEY'],
+                            config['cos_endpoint_url'])
         except COSWrapperError as cwe:
             print('Error. Cloud Object Storage preparation failed: {}'
                   .format(cwe))
@@ -252,7 +253,8 @@ def do_train():
         try:
             # instantiate the Cloud Object Storage wrapper
             cw = COSWrapper(os.environ['AWS_ACCESS_KEY_ID'],
-                            os.environ['AWS_SECRET_ACCESS_KEY'])
+                            os.environ['AWS_SECRET_ACCESS_KEY'],
+                            config['cos_endpoint_url'])
 
             print(' Verifying that training results bucket "{}" exists. '
                   ' It will be created if necessary ...'
@@ -578,14 +580,20 @@ def do_train():
         }
 
         print('Training configuration summary:')
-        print(' Training run name     : {}'
+        print(' Training run name          : {}'
               .format(config['training_run_name']))
-        print(' Training data bucket  : {}'
-              .format(config['training_bucket']))
-        print(' Results bucket        : {}'
-              .format(config['results_bucket']))
-        print(' Model-building archive: {}'
+        print(' Training data bucket       : {} ({})'
+              .format(config['training_bucket'],
+                      config['cos_endpoint_url']))
+        print(' Results bucket             : {} ({})'
+              .format(config['results_bucket'],
+                      config['cos_endpoint_url']))
+        print(' Model-building archive     : {}'
               .format(config['model_code_archive']))
+        print(' Watson Machine Learning URL: {}'
+              .format(os.environ['ML_ENV']))
+        print(' Compute configuration      : {}'
+              .format(config['training_run_compute_configuration_name']))
 
         try:
             training_guid = w.start_training(

@@ -62,6 +62,9 @@ class COSWrapper:
         assert aws_secret_access_key is not None,\
             'Parameter aws_secret_access_key cannot be None'
 
+        if endpoint_url is None:
+            endpoint_url = self.US_GEO_URL
+
         try:
             self.cos = ibm_boto3\
                         .resource('s3',
