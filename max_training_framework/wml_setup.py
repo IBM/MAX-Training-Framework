@@ -268,9 +268,10 @@ def do_setup():
             h = urlparse(os.environ.get(env_var)).hostname
             if len([sh for sh in ['us-south', 'eu-gb']
                     if h.startswith(sh)]) == 0:
-               print('Error. WML service location "{}" does not provide the '
-                     'required training functionality.'.format(h))
-               wml_env_check_flag = 'N'
+                print('Error. WML service location "{}" does not '
+                      'provide the required training '
+                      'functionality.'.format(h))
+                wml_env_check_flag = 'N'
 
     if wml_env_check_flag == 'N':
         print(' ')
