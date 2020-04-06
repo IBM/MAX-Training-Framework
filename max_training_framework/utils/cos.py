@@ -91,7 +91,6 @@ class COSWrapper:
 
             :raises COSWrapperError: an error occurred
         """
-
         debug('get_bucket_list({})'.format(limit))
 
         if limit is not None:

@@ -46,7 +46,10 @@ class InstanceHandler:
                     enumerate(value['plan_history'], start=1):
                 for key, values in \
                         enumerate(self.data[which_resource].items()):
-                    if plan['resource_plan_id'] == values[1]:
+                    if plan['resource_plan_id'] == values[1] \
+                            and (value['region_id'] not in \
+                            ['eu-de', 'jp-tok'] or
+                                  which_resource == 'cos'):
                         count += 1
                         inter_list.append([count, value['name'],
                                            value['region_id'],

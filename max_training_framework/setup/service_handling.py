@@ -98,7 +98,7 @@ class ServiceHandler:
         :return: WML location, plan and resource plan id
         """
         # WML available deployment locations.
-        wml_deployment_location = ['eu-de', 'eu-gb', 'jp-tok', 'us-south']
+        wml_deployment_location = ['eu-gb', 'us-south']
         # WML available plans
         wml_plans = ['wml-lite', 'wml-professional', 'wml-standard']
         print("[MESSAGE] Choose a deployment location for this new instance.")
