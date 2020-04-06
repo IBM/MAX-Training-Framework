@@ -6,7 +6,7 @@ with open('README.md') as readme:
 setup(
   name='max-training-framework',
   packages=find_packages(),
-  version='0.1.1',
+  version='0.1.2',
   license='Apache-2.0',
   description='Training framework for the Model Asset Exchange',
   long_description=README,
