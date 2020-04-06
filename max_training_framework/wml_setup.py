@@ -22,6 +22,7 @@ from max_training_framework.setup.service_handling import ServiceHandler
 from max_training_framework.setup.yaml_handling import YAMLHandler
 from max_training_framework.setup.setup_functions import InstanceHandler
 from max_training_framework.setup.instance_handling import MainHandler
+from urllib.parse import urlparse
 
 
 def do_setup():
@@ -261,6 +262,20 @@ def do_setup():
     for env_var in ['ML_ENV', 'ML_APIKEY', 'ML_INSTANCE']:
         if os.environ.get(env_var) is None:
             wml_env_check_flag = 'N'
+
+        if env_var == 'ML_ENV' and wml_env_check_flag == 'Y':
+            h = urlparse(os.environ.get(env_var)).hostname
+            if len([sh for sh in ['us-south', 'eu-gb']
+                    if h.startswith(sh)]) == 0:
+                print('Error. Environment variable ML_ENV is '
+                      'set to "{}". The Watson Machine Learning '
+                      'service in this region does not provide the '
+                      'required training functionality. The existing '
+                      'WML environment variables will be '
+                      'ignored.'.format(h))
+
+                wml_env_check_flag = 'N'
+
     if wml_env_check_flag == 'N':
         print(' ')
         print('[MESSAGE] Watson Machine Learning environment variables '
