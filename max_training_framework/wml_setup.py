@@ -270,7 +270,7 @@ def do_setup():
                 print('Error. Environment variable ML_ENV is '
                       'set to "{}". The Watson Machine Learning '
                       'service in this region does not provide the '
-                      'required training functionality.The existing '
+                      'required training functionality. The existing '
                       'WML environment variables will be '
                       'ignored.'.format(h))
 
