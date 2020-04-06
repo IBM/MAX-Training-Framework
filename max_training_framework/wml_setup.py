@@ -264,7 +264,6 @@ def do_setup():
             wml_env_check_flag = 'N'
 
         if env_var == 'ML_ENV' and wml_env_check_flag == 'Y':
-            os.environ.get(env_var)
             h = urlparse(os.environ.get(env_var)).hostname
             if len([sh for sh in ['us-south', 'eu-gb']
                     if h.startswith(sh)]) == 0:
