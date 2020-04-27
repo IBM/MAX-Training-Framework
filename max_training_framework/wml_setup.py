@@ -265,7 +265,7 @@ def do_setup():
 
         if env_var == 'ML_ENV' and wml_env_check_flag == 'Y':
             h = urlparse(os.environ.get(env_var)).hostname
-            if len([sh for sh in ['us-south', 'eu-gb']
+            if len([sh for sh in ['us-south', 'eu-de']
                     if h.startswith(sh)]) == 0:
                 print('Error. Environment variable ML_ENV is '
                       'set to "{}". The Watson Machine Learning '
