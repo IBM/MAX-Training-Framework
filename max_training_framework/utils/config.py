@@ -290,9 +290,9 @@ class YAMLReader():
                 if (p.get('name') or '').strip().lower() != 'training_process':
                     continue
                 resolved_config['trained_model_path'] = \
-                    (p.get('params')or {}).get('trained_model_path')
+                    (p.get('params') or {}).get('trained_model_path')
                 resolved_config['local_download_directory'] = \
-                    (p.get('params')or {}).get('staging_dir')
+                    (p.get('params') or {}).get('staging_dir')
                 break
 
             if resolved_config.get('trained_model_path') is None:

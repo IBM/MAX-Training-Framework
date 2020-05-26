@@ -182,7 +182,7 @@ class YAMLHandler:
                     self.local_directory_handle(bucket_name)
                 if handle_status is False:
                     print('[MESSAGE] Error. No local training data was found '
-                          'in the local directory.'.format(upload_path))
+                          'in local directory "{}".'.format(upload_path))
                     sys.exit()
                 else:
                     print('[MESSAGE] Uploaded files to training data bucket '
@@ -225,7 +225,7 @@ class YAMLHandler:
                             self.local_directory_handle(bucket_name)
                         if handle_status is False:
                             print('[MESSAGE] Error. No local training data '
-                                  'was found in the local directory.'.
+                                  'was found in local directory "{}".'.
                                   format(upload_path))
                             sys.exit()
                         else:
