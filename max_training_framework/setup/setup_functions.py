@@ -48,7 +48,7 @@ class InstanceHandler:
                         enumerate(self.data[which_resource].items()):
                     if plan['resource_plan_id'] == values[1] \
                             and (value['region_id'] in
-                                 ['eu-gb', 'us-south'] or
+                                 ['eu-de', 'us-south'] or
                                  which_resource == 'cos'):
                         count += 1
                         inter_list.append([count, value['name'],

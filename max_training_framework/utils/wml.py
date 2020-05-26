@@ -100,9 +100,9 @@ class WMLWrapper:
 
         # verify that the specified WML service supports
         # the deep learning functionality we want to use
-        # Current list (as of 01/2020): 'us-south' and 'eu-gb'
+        # Current list (as of 01/2020): 'us-south' and 'eu-de'
         h = urlparse(url).hostname
-        if len([sh for sh in ['us-south', 'eu-gb'] if h.startswith(sh)]) == 0:
+        if len([sh for sh in ['us-south', 'eu-de'] if h.startswith(sh)]) == 0:
             raise WMLWrapperError(
                 'Error. WML service location "{}" does not '
                 'provide the required training functionality.'
