@@ -141,7 +141,7 @@ def do_train():
         print_banner('Checking environment variables ...')
         var_missing = False
         # WML environment variables
-        for var_name in ['ML_ENV', 'ML_APIKEY', 'ML_INSTANCE']:
+        for var_name in ['ML_APIKEY']:
             if os.environ.get(var_name) is None:
                 print(' Error. Environment variable {} is not defined.'
                       .format(var_name))
@@ -212,8 +212,7 @@ def do_train():
         try:
             # instantiate Watson Machine Learning wrapper
             w = WMLWrapper(os.environ['ML_ENV'],
-                           os.environ['ML_APIKEY'],
-                           os.environ['ML_INSTANCE'])
+                           os.environ['ML_APIKEY'])
 
             # verify that the provided training id is valid
             if not w.is_known_training_id(training_guid):
@@ -516,51 +515,60 @@ def do_train():
 
         try:
             # instantiate the WML client
-            w = WMLWrapper(os.environ['ML_ENV'],
+            if 'ML_INSTANCE' in os.environ:
+                w = WMLWrapper(os.environ['ML_ENV'],
                            os.environ['ML_APIKEY'],
                            os.environ['ML_INSTANCE'])
+            else:
+                w = WMLWrapper(os.environ['ML_ENV'],
+                            os.environ['ML_APIKEY'])
         except WMLWrapperError as wmle:
             print(wmle)
             sys.exit(ExitCode.PRE_PROCESSING_FAILED.value)
-
         # define training metadata
         model_definition_metadata = {
-            w.get_client().repository.DefinitionMetaNames.NAME:
+            w.get_client().model_definitions.ConfigurationMetaNames.NAME:
                 config['training_run_name'],
-            w.get_client().repository.DefinitionMetaNames.DESCRIPTION:
+            w.get_client().model_definitions.ConfigurationMetaNames.DESCRIPTION:
                 config['training_run_description'],
-            w.get_client().repository.DefinitionMetaNames.AUTHOR_NAME:
-                config['author_name'],
-            w.get_client().repository.DefinitionMetaNames.FRAMEWORK_NAME:
-                config['framework_name'],
-            w.get_client().repository.DefinitionMetaNames.FRAMEWORK_VERSION:
-                config['framework_version'],
-            w.get_client().repository.DefinitionMetaNames.RUNTIME_NAME:
-                config['runtime_name'],
-            w.get_client().repository.DefinitionMetaNames.RUNTIME_VERSION:
-                config['runtime_version'],
-            w.get_client().repository.DefinitionMetaNames.EXECUTION_COMMAND:
+            # w.get_client().model_definitions.ConfigurationMetaNames.AUTHOR_NAME:
+            #     config['author_name'],
+            # w.get_client().model_definitions.ConfigurationMetaNames.FRAMEWORK_NAME:
+            #     config['framework_name'],
+            # w.get_client().model_definitions.ConfigurationMetaNames.FRAMEWORK_VERSION:
+            #     config['framework_version'],
+            w.get_client().model_definitions.ConfigurationMetaNames.PLATFORM: {
+                'name': config['runtime_name'],
+                'versions': [config['runtime_version']]
+            },
+            w.get_client().model_definitions.ConfigurationMetaNames.COMMAND:
                 config['training_run_execution_command']
         }
 
         training_configuration_metadata = {
             w.get_client().training.ConfigurationMetaNames.NAME:
                 config['training_run_name'],
-            w.get_client().training.ConfigurationMetaNames.AUTHOR_NAME:
-                config['author_name'],
-            w.get_client().training.ConfigurationMetaNames.DESCRIPTION:
-                config['training_run_description'],
+            # w.get_client().training.ConfigurationMetaNames.AUTHOR_NAME:
+            #     config['author_name'],
+            # w.get_client().training.ConfigurationMetaNames.DESCRIPTION:
+            #     config['training_run_description'],
+            w.get_client().training.ConfigurationMetaNames.MODEL_DEFINITION: {
+                'command': config['training_run_execution_command'],
+                'hardware_spec': {
+                    'name': config['training_run_compute_configuration_name']
+                }
+            },
+            # w.get_client().training.ConfigurationMetaNames
+            # .COMPUTE_CONFIGURATION:
+            #     {'name': config['training_run_compute_configuration_name']},
             w.get_client().training.ConfigurationMetaNames
-            .COMPUTE_CONFIGURATION:
-                {'name': config['training_run_compute_configuration_name']},
-            w.get_client().training.ConfigurationMetaNames
-            .TRAINING_DATA_REFERENCE: {
+            .TRAINING_DATA_REFERENCES: {
                 'connection': {
                     'endpoint_url': config['cos_endpoint_url'],
                     'access_key_id': os.environ['AWS_ACCESS_KEY_ID'],
                     'secret_access_key': os.environ['AWS_SECRET_ACCESS_KEY']
                 },
-                'source': {
+                'location': {
                     'bucket': config['training_bucket'],
                 },
                 'type': 's3'
@@ -572,7 +580,7 @@ def do_train():
                     'access_key_id': os.environ['AWS_ACCESS_KEY_ID'],
                     'secret_access_key': os.environ['AWS_SECRET_ACCESS_KEY']
                 },
-                'target': {
+                'location': {
                     'bucket': config['results_bucket'],
                 },
                 'type': 's3'

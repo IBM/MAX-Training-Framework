@@ -19,7 +19,7 @@ from .debug import debug
 import json
 import re
 from urllib.parse import urlparse
-from watson_machine_learning_client import WatsonMachineLearningAPIClient
+from ibm_watson_machine_learning import APIClient
 from watson_machine_learning_client.wml_client_error import ApiRequestFailure
 
 
@@ -92,7 +92,7 @@ class WMLWrapper:
     def __init__(self,
                  url,
                  api_key,
-                 instance_id):
+                 instance_id=None):
         """
         Initializer
 
@@ -109,12 +109,15 @@ class WMLWrapper:
                 .format(h))
 
         try:
-            self.client = WatsonMachineLearningAPIClient({
-                            'url': url,
-                            'apikey': api_key,
-                            'instance_id': instance_id
-                            })
-            self.client.service_instance.get_details()
+            wml_credentials = {
+                'url': url,
+                'apikey': api_key,
+            }
+            if instance_id:
+                wml_credentials['instance_id'] = instance_id
+
+            self.client = APIClient(wml_credentials)
+            # self.client.service_instance.get_details()
         except ApiRequestFailure as arf:
             debug('Exception: {}'.format(arf))
             p = WMLWrapper.parse_WML_ApiRequestFailure(arf)
@@ -169,18 +172,16 @@ class WMLWrapper:
 
             # Store training definition into Watson Machine Learning
             # repository on IBM Cloud.
+
             definition_details = \
-                self.client.repository.store_definition(
-                                        model_building_archive,
-                                        model_definition_metadata)
+                self.client.model_definitions.store(
+                                            model_building_archive,
+                                            meta_props=model_definition_metadata)
 
             debug('store_definition details:', definition_details)
 
-            # Get uid of stored definition
-            definition_uid = \
-                self.client.repository.get_definition_uid(definition_details)
-
-            debug('get_definition_uid:', definition_uid)
+            definition_id = client.model_definitions.get_id(model_definition_details)
+            debug('definition_id:' , definition_id)
 
             # Train model
             training_run_details = \

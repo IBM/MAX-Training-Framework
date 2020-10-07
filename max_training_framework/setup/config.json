@@ -2,7 +2,8 @@
   "wml": {
   "wml-lite": "3f6acf43-ede8-413a-ac69-f8af3bb0cbfe",
   "wml-professional": "b52ce7cf-a5c3-4da8-b368-a4ed3c61918c",
-  "wml-standard": "0f2a3c2c-456b-40f3-9b19-726d2740b11c"
+  "wml-standard": "0f2a3c2c-456b-40f3-9b19-726d2740b11c",
+  "wml-standard-v2" : "a3d2f92f-06f9-48d0-b2e6-a7ba2b4e0577"
 },
   "cos":{
    "cos-lite": "2fdf0c08-2d32-4f46-84b5-32e0c92fffd8",

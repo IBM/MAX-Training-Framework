@@ -16,8 +16,8 @@ setup(
   url='https://github.com/IBM/Max-Training-Framework',
   keywords=['deep learning'],
   install_requires=[
-    'watson-machine-learning-client==1.0.371',
-    'ibm-cos-sdk==2.4.4',
+    'ibm-watson-machine-learning==1.0.15',
+    'ibm-cos-sdk==2.7.0',
     'ruamel.yaml==0.15.74',
     'requests==2.21.0'
   ],
