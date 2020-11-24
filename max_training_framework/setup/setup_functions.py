@@ -17,7 +17,6 @@
 import requests
 import sys
 import json
-import pprint
 from pathlib import Path
 
 
@@ -41,7 +40,6 @@ class InstanceHandler:
         :param count: number of resources retrieved.
         :return: intermediate list and resources count.
         """
-        print(self.data[which_resource])
         for index, value in enumerate(response['resources'], start=1):
             # check instances under the specified resource
             for index_1, plan in \
@@ -206,7 +204,6 @@ class InstanceHandler:
                                       headers=headers)
         if available_keys.status_code == 200:
             available_keys = available_keys.json()
-            pprint.pprint(available_keys)
             # list for storing existing keys and list
             existing_keys = []
             existing_keys_guid = []
