@@ -92,6 +92,7 @@ class WMLWrapper:
     def __init__(self,
                  url,
                  api_key,
+                 space_id,
                  instance_id=None):
         """
         Initializer
@@ -117,6 +118,7 @@ class WMLWrapper:
                 wml_credentials['instance_id'] = instance_id
 
             self.client = APIClient(wml_credentials)
+            self.client.set.default_space(space_id)
             # self.client.service_instance.get_details()
         except ApiRequestFailure as arf:
             debug('Exception: {}'.format(arf))
@@ -180,18 +182,20 @@ class WMLWrapper:
 
             debug('store_definition details:', definition_details)
 
-            definition_id = client.model_definitions.get_id(model_definition_details)
-            debug('definition_id:' , definition_id)
+            definition_uid = self.client.model_definitions.get_id(definition_details)
+            debug('definition_id:', definition_uid)
 
+            training_configuration_metadata[self.client.training.ConfigurationMetaNames.MODEL_DEFINITION]['id'] = definition_uid
+            
+            debug('training config metadata:', training_configuration_metadata)
             # Train model
             training_run_details = \
-                self.client.training.run(definition_uid,
-                                         training_configuration_metadata)
+                self.client.training.run(training_configuration_metadata)
 
             debug('run details: ', training_run_details)
 
             # Get uid of training run
-            run_uid = self.client.training.get_run_uid(training_run_details)
+            run_uid = self.client.training.get_uid(training_run_details)
 
             debug('run uid: {}'.format(run_uid))
 
@@ -253,6 +257,9 @@ class WMLWrapper:
         status = None
         try:
             status = self.client.training.get_status(training_guid)
+
+            # if status['state'] == "failed":
+            #     raise WMLWrapperError(status['failure']['errors'][0]['message'])
         except ApiRequestFailure as arf:
             debug('Exception type: {}'.format(type(arf)))
             debug('Exception: {}'.format(arf))
@@ -320,11 +327,11 @@ class WMLWrapper:
         # extract results bucket name and model location from the response
         if ((details.get('entity', None) is not None) and
             (details['entity']
-                .get('training_results_reference', None) is not None) and
-            (details['entity']['training_results_reference']
+                .get('results_reference', None) is not None) and
+            (details['entity']['results_reference']
                 .get('location', None) is not None)):
             return(
-                details['entity']['training_results_reference']['location'])
+                details['entity']['results_reference']['location'])
         # the response did not contain the expected results
         return {}
 
