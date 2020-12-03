@@ -177,8 +177,8 @@ class WMLWrapper:
 
             definition_details = \
                 self.client.model_definitions.store(
-                                            model_building_archive,
-                                            meta_props=model_definition_metadata)
+                                        model_building_archive,
+                                        meta_props=model_definition_metadata)
 
             debug('store_definition details:', definition_details)
 
@@ -186,7 +186,7 @@ class WMLWrapper:
             debug('definition_id:', definition_uid)
 
             training_configuration_metadata[self.client.training.ConfigurationMetaNames.MODEL_DEFINITION]['id'] = definition_uid
-            
+
             debug('training config metadata:', training_configuration_metadata)
             # Train model
             training_run_details = \

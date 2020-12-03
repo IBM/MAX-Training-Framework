@@ -16,64 +16,19 @@
 
 import os
 import sys
+import uuid
+import inspect
 import ruamel.yaml
 from max_training_framework.setup.token_generate import TokenGenerate
 from max_training_framework.setup.service_handling import ServiceHandler
 from max_training_framework.setup.yaml_handling import YAMLHandler
 from max_training_framework.setup.setup_functions import InstanceHandler
 from max_training_framework.setup.instance_handling import MainHandler
+from max_training_framework.setup.space_handling import SpaceHandler
 from urllib.parse import urlparse
 
 
 def do_setup():
-
-    setup_goal = """
-    Use this script to configure your environment for MAX model training:
-    1. Manage Watson Machine Learning and Cloud Object Storage resources.
-    2. Set environment variables required for the model training script.
-    3. Customize the training configuration file.
-    4. Configure the training compute resources.
-    """
-
-    print(setup_goal)
-
-    if len(sys.argv) == 1:
-        print('Invocation error. '
-              'Please provide a training configuration YAML file name.')
-        print('\nUsage: python {} <training_config_file>  \n'
-              .format(sys.argv[0]))
-        sys.exit()
-
-    if len(sys.argv) == 2:
-        if os.path.isfile(sys.argv[1]) is False:
-            print('Invocation error. "{}" is not a file.'.format(sys.argv[1]))
-            print('\nUsage: python {} <training_config_file>  \n'
-                  .format(sys.argv[0]))
-            sys.exit()
-        file_name = sys.argv[1]
-        yaml = ruamel.yaml.YAML(typ='rt')
-        yaml.allow_duplicate_keys = True
-        yaml.preserve_quotes = True
-        yaml.indent(mapping=6, sequence=4)
-        try:
-            with open(file_name) as fp:
-                # Loading configuration file
-                config = yaml.load(fp)
-                assert ("bucket" in config['train'][
-                    'data_source']['training_data'])
-                assert ("bucket" in config['train'][
-                    'model_training_results']['trained_model'])
-                assert ("path" in config['train'][
-                    'data_source']['training_data_local'])
-                assert ("name" in config['train'][
-                    'execution']['compute_configuration'])
-                assert ("path" in config['train']['data_source'][
-                    'training_data'])
-        except Exception as e:
-            print("Exception is: ", e)
-            print("[ERROR] Provide a valid configuration YAML "
-                  "file for initiating the training process")
-            sys.exit()
 
     def yaml_handle(read_flag, input_bucket_name, local_directory,
                     result_bucket_name, compute_config):
@@ -148,7 +103,7 @@ def do_setup():
             sys.exit()
 
     def env_extract(access_key, secret_access_key, apikey,
-                    instance_id, url):
+                    space_id, url):
         """
         This function:
         1. Extract current configuration values from the YAML file.
@@ -160,8 +115,8 @@ def do_setup():
         for initiating training process.
         :param access_key: cloud object storage access key.
         :param secret_access_key: cloud object storage secret access key
-        :param apikey: watson machine learning apikey
-        :param instance_id: watson machine learning instance id
+        :param apikey: IBM cloud apikey
+        :param space_id: IBM cloud space id
         :param url: watson machine learning url
 
         The function exits by displaying environment variables value to be
@@ -169,11 +124,11 @@ def do_setup():
         values that have been updated in YAML file.
         """
         (cfg_inp_bucket, cfg_out_bucket, cfg_loc_path, cfg_cmp_config,
-         cfg_key_prefix) = yaml_handle('Y', '', '', '', '')
+            cfg_key_prefix) = yaml_handle('Y', '', '', '', '')
         yaml_handler = YAMLHandler(cfg_inp_bucket, cfg_out_bucket,
-                                   cfg_loc_path, cfg_cmp_config,
-                                   access_key, secret_access_key,
-                                   cfg_key_prefix)
+                                    cfg_loc_path, cfg_cmp_config,
+                                    access_key, secret_access_key,
+                                    cfg_key_prefix)
         input_bucket_name, local_directory = yaml_handler.input_bucket_handle()
         result_bucket_name = \
             yaml_handler.result_bucket_handle(input_bucket_name)
@@ -190,9 +145,9 @@ def do_setup():
         Compute configuration       : {}
 
         """.format(input_bucket_name,
-                   local_directory,
-                   result_bucket_name,
-                   compute_config)
+                    local_directory,
+                    result_bucket_name,
+                    compute_config)
 
         print(summary)
 
@@ -209,7 +164,7 @@ def do_setup():
 
     1. Update or set the following environment variables:
         ML_APIKEY={}
-        ML_INSTANCE={}
+        SPACE_ID={}
         ML_ENV={}
         AWS_ACCESS_KEY_ID={}
         AWS_SECRET_ACCESS_KEY={}
@@ -218,16 +173,137 @@ def do_setup():
 
     3. Run `{} {} package` to train the model using your data.
             """.format(apikey,
-                       instance_id,
-                       url,
-                       access_key,
-                       secret_access_key,
-                       os_run_cmd,
-                       sys.argv[1],
-                       os_run_cmd,
-                       sys.argv[1])
+                        space_id,
+                        url,
+                        access_key,
+                        secret_access_key,
+                        os_run_cmd,
+                        sys.argv[1],
+                        os_run_cmd,
+                        sys.argv[1])
             print(next_steps)
         sys.exit()
+
+    def configure_instances():
+
+        resource_id_display = \
+        """
+        *-------------------------------------------------------------------------*
+        |                                                                         |
+        |   Retrieving your IBM resource group information.                       |
+        |                                                                         |
+        |   A resource group is used to organize your IBM Cloud resources, such   |
+        |   as AI and storage services.                                           |
+        |                                                                         |
+        *-------------------------------------------------------------------------*
+        """
+
+        config_display = \
+        """
+        *-------------------------------------------------------------------------*
+        |                                                                         |
+        |  To train a MAX model using your own data, an instance of the           |
+        |  Watson Machine Learning service and an instance of the Cloud Object    |
+        |  service is required.                                                   |
+        |                                                                         |
+        *-------------------------------------------------------------------------*
+        """
+
+        # Pre-requisite check
+        # Generating iam access token
+        token_obj = TokenGenerate()
+        iam_access_token = token_obj.get_api_location()
+
+        #
+        ins_obj = ServiceHandler(iam_access_token)
+        # Retrieve resource id
+        print(resource_id_display)
+        resource_id = ins_obj.get_resources_id()
+        ins_handle = InstanceHandler(iam_access_token)
+        main_handle = MainHandler(resource_id, iam_access_token,
+                                    ins_obj, ins_handle)
+        #
+        print(config_display)
+
+        # steps for configuring both COS and WML
+        try:
+            # Retrieving WML details
+            wml_name, wml_crn, url = main_handle.wml_block()
+        except KeyError as ex:
+            print(type(ex), '::', ex)
+            sys.exit()
+        try:
+            # Retrieving COS details
+            resource_instance_id, cos_apikey, access_key, \
+                secret_access_key, source_crn= \
+                main_handle.cos_block()
+        except KeyError as ex:
+            print(type(ex), '::', ex)
+            sys.exit()
+
+        # Create deployment space
+        cloud_api_key = token_obj.get_apikey()
+        space_handler = SpaceHandler(cloud_api_key, url)
+        space_id = space_handler.create_space('MAX-' + str(uuid.uuid4()),
+                                                'Deployment Space for MAX',
+                                                wml_name,
+                                                wml_crn,
+                                                source_crn)
+
+        # Updating config YAML file
+        env_extract(access_key, secret_access_key, cloud_api_key, space_id, url)
+        sys.exit()
+
+
+    setup_goal = """
+    Use this script to configure your environment for MAX model training:
+    1. Manage Watson Machine Learning and Cloud Object Storage resources.
+    2. Set environment variables required for the model training script.
+    3. Customize the training configuration file.
+    4. Configure the training compute resources.
+    """
+
+    print(setup_goal)
+
+    if len(sys.argv) == 1:
+        print('Invocation error. '
+              'Please provide a training configuration YAML file name.')
+        print('\nUsage: python {} <training_config_file>  \n'
+              .format(sys.argv[0]))
+        sys.exit()
+
+    if len(sys.argv) == 2:
+        if os.path.isfile(sys.argv[1]) is False:
+            print('Invocation error. "{}" is not a file.'.format(sys.argv[1]))
+            print('\nUsage: python {} <training_config_file>  \n'
+                  .format(sys.argv[0]))
+            sys.exit()
+        file_name = sys.argv[1]
+        yaml = ruamel.yaml.YAML(typ='rt')
+        yaml.allow_duplicate_keys = True
+        yaml.preserve_quotes = True
+        yaml.indent(mapping=6, sequence=4)
+        try:
+            with open(file_name) as fp:
+                # Loading configuration file
+                config = yaml.load(fp)
+                assert ("bucket" in config['train'][
+                    'data_source']['training_data'])
+                assert ("bucket" in config['train'][
+                    'model_training_results']['trained_model'])
+                assert ("path" in config['train'][
+                    'data_source']['training_data_local'])
+                assert ("name" in config['train'][
+                    'execution']['compute_configuration'])
+                assert ("path" in config['train']['data_source'][
+                    'training_data'])
+        except Exception as e:
+            print("Exception is: ", e)
+            print("[ERROR] Provide a valid configuration YAML "
+                  "file for initiating the training process")
+            sys.exit()
+
+
 
     env_check = """
 
@@ -333,9 +409,7 @@ def do_setup():
                         instance_id, url)
         # Steps for option 2: User wants to change the current settings.
         if user_option == '2':
-            cos_env_check_flag = 'N'
-            wml_env_check_flag = 'N'
-            change_setting_flag = 'Y'
+            configure_instances()
         # Steps for option 3: User wants to change only compute configuration.
         if user_option == '3':
             (cfg_inp_bucket, cfg_out_bucket, cfg_loc_path, cfg_cmp_config,
@@ -376,190 +450,8 @@ def do_setup():
 
             sys.exit()
 
-    resource_id_display = """
-    *-------------------------------------------------------------------------*
-    |                                                                         |
-    |   Retrieving your IBM resource group information.                       |
-    |                                                                         |
-    |   A resource group is used to organize your IBM Cloud resources, such   |
-    |   as AI and storage services.                                           |
-    |                                                                         |
-    *-------------------------------------------------------------------------*
-                            """
 
-    config_display = """
-    *-------------------------------------------------------------------------*
-    |                                                                         |
-    |  To train a MAX model using your own data, an instance of the           |
-    |  Watson Machine Learning service and an instance of the Cloud Object    |
-    |  service is required.                                                   |
-    |                                                                         |
-    *-------------------------------------------------------------------------*
-        """
-
-    # Steps for changing configuration
-    if cos_env_check_flag == 'N' or wml_env_check_flag == 'N':  # noqa
-        flow_check_flag = 'N'
-        if cos_env_check_flag == 'N' and wml_env_check_flag == 'N' and \
-                change_setting_flag == 'N' and flow_check_flag == 'N':
-            print('   ')
-            print("*------------------------------------------------------"
-                  "-------------------------*")
-            print("|  Configuring Watson Machine Learning and "
-                  "Cloud Object Storage resources.      |")
-            print("*------------------------------------------------------"
-                  "-------------------------*")
-            option = 'both'
-            flow_check_flag = 'Y'
-
-        if cos_env_check_flag == 'N' and change_setting_flag == 'N' \
-                and flow_check_flag == 'N':
-            selection = """
-    *-------------------------------------------------------------------------*
-    |    Change an existing model training configuration.                     |
-    |--------------------------------------------------------------------------
-    |                                                                         |
-    |    1. Re-configure Watson Machine Learning and Cloud Object Storage.    |
-    |                                                                         |
-    |    2. Re-configure only Cloud Object Storage.                           |
-    |                                                                         |
-    *-------------------------------------------------------------------------*
-                            """
-            print(selection)
-            while True:
-                option = input("[PROMPT] Your selection:  ")
-                if not option.isdigit() or int(
-                        option) < 1 or int(option) > 2:
-                    print("[MESSAGE] Enter a number 1 or 2.")
-                    continue
-                else:
-                    if option == '1':
-                        option = 'both'
-                    elif option == '2':
-                        option = 'cos'
-                    flow_check_flag = 'Y'
-                    break
-
-        if wml_env_check_flag == 'N' and change_setting_flag == 'N' \
-                and flow_check_flag == 'N':
-            selection = """
-    *-------------------------------------------------------------------------*
-    |    Change an existing model training configuration.                     |
-    |--------------------------------------------------------------------------
-    |                                                                         |
-    |    1. Re-configure Watson Machine Learning and Cloud Object Storage.    |
-    |                                                                         |
-    |    2. Re-configure only Watson Machine Learning.                        |
-    |                                                                         |
-    *-------------------------------------------------------------------------*
-                            """
-            print(selection)
-            while True:
-                option = input("[PROMPT] Your selection:  ")
-                if not option.isdigit() or int(
-                        option) < 1 or int(option) > 2:
-                    print("[MESSAGE] Enter a number 1 or 2.")
-                    continue
-                else:
-                    if option == '1':
-                        option = 'both'
-                    elif option == '2':
-                        option = 'wml'
-                    flow_check_flag = 'Y'
-                    break
-
-        if change_setting_flag == 'Y' and flow_check_flag == 'N':
-            selection = """
-    *------------------------------------------------------------------------*
-    |    Change an existing model training configuration.                    |
-    |------------------------------------------------------------------------|
-    |                                                                        |
-    |    1. Re-configure Watson Machine Learning and Cloud Object Storage.   |
-    |                                                                        |
-    |    2. Re-configure only Watson Machine Learning.                       |
-    |                                                                        |
-    |    3. Re-configure only Cloud Object Storage.                          |
-    |                                                                        |
-    *------------------------------------------------------------------------*
-                    """
-            print(selection)
-            while True:
-                option = input("[PROMPT] Your selection:  ")
-                if not option.isdigit() or int(
-                        option) < 1 or int(option) > 3:
-                    print("[MESSAGE] Enter a number between 1 and 3.")
-                    continue
-                else:
-                    if option == '1':
-                        option = 'both'
-                    elif option == '2':
-                        option = 'wml'
-                    elif option == '3':
-                        option = 'cos'
-                    flow_check_flag = 'Y'
-                    break
-        # Pre-requisite check
-        # Generating iam access token
-        token_obj = TokenGenerate()
-        iam_access_token = token_obj.get_api_location()
-
-        #
-        ins_obj = ServiceHandler(iam_access_token)
-        # Retrieve resource id
-        print(resource_id_display)
-        resource_id = ins_obj.get_resources_id()
-        ins_handle = InstanceHandler(iam_access_token)
-        main_handle = MainHandler(resource_id, iam_access_token,
-                                  ins_obj, ins_handle)
-        #
-        print(config_display)
-        # steps for configuring both COS and WML
-        if option == 'both':
-            try:
-                # Retrieving WML details
-                wml_apikey, instance_id, url = main_handle.wml_block()
-            except KeyError as ex:
-                print(type(ex), '::', ex)
-                sys.exit()
-            try:
-                # Retrieving COS details
-                resource_instance_id, apikey, access_key, secret_access_key = \
-                    main_handle.cos_block()
-            except KeyError as ex:
-                print(type(ex), '::', ex)
-                sys.exit()
-            # Updating config YAML file
-            env_extract(access_key, secret_access_key, wml_apikey,
-                        instance_id, url)
-            sys.exit()
-        # steps for configuring only WML
-        if option == 'wml':
-            try:
-                # Retrieving WML details
-                wml_apikey, instance_id, url = main_handle.wml_block()
-            except KeyError:
-                print("[DEBUG] Error in key retrieval details")
-                sys.exit()
-            access_key = os.environ['AWS_ACCESS_KEY_ID']
-            secret_access_key = os.environ['AWS_SECRET_ACCESS_KEY']
-            env_extract(access_key, secret_access_key, wml_apikey,
-                        instance_id, url)
-            sys.exit()
-        # steps for configuring only COS
-        if option == 'cos':
-            try:
-                resource_instance_id, apikey, access_key, secret_access_key = \
-                    main_handle.cos_block()
-            except KeyError:
-                print("Error in creating new COS key and retrieving details")
-                sys.exit()
-            print('*** Cloud Object Storage setting has been completed ***')
-            wml_apikey = os.environ['ML_APIKEY']
-            instance_id = os.environ['ML_INSTANCE']
-            url = os.environ['ML_ENV']
-            env_extract(access_key, secret_access_key, wml_apikey,
-                        instance_id, url)
-            sys.exit()
+    configure_instances()
 
 
 # run as script

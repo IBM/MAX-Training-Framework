@@ -517,14 +517,15 @@ def do_train():
         try:
             # instantiate the WML client
             if 'ML_INSTANCE' in os.environ:
+                # For old V1 instances
                 w = WMLWrapper(os.environ['ML_ENV'],
-                           os.environ['ML_APIKEY'],
-                           os.environ['SPACE_ID'],
-                           os.environ['ML_INSTANCE'])
+                               os.environ['ML_APIKEY'],
+                               os.environ['SPACE_ID'],
+                               os.environ['ML_INSTANCE'])
             else:
                 w = WMLWrapper(os.environ['ML_ENV'],
-                            os.environ['ML_APIKEY'],
-                            os.environ['SPACE_ID'])
+                               os.environ['ML_APIKEY'],
+                               os.environ['SPACE_ID'])
         except WMLWrapperError as wmle:
             print(wmle)
             sys.exit(ExitCode.PRE_PROCESSING_FAILED.value)
