@@ -44,9 +44,6 @@ class MainHandler:
         :return: WML environment variables such as apikey,
                  url and instance id.
         """
-        headers = {
-            'Authorization': self.iam_access_token,
-        }
         print('-------------------------------------------------------------'
               '------------------------')
         print('Choose an existing Watson Machine Learning service instance '
@@ -95,7 +92,7 @@ class MainHandler:
             self.ins_obj.wml_request_resource_details(wml_instance_guid)
         return wml_name, wml_crn, wml_url
 
-           
+
     def cos_block(self):  # noqa
         """
         Handles Cloud Object Storage related operations.

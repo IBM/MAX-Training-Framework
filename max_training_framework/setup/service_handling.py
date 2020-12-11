@@ -227,11 +227,11 @@ class ServiceHandler:
 
         ENDPOINT_URL = "https://{}.ml.cloud.ibm.com"
 
-        # Get instance details 
+        # Get instance details
         wml_details = requests.get('https://resource-controller.'
-                                    'cloud.ibm.com/v2/resource_instances/{}'
-                                    .format(wml_instance_guid),
-                                    headers=headers)
+                                   'cloud.ibm.com/v2/resource_instances/{}'
+                                   .format(wml_instance_guid),
+                                   headers=headers)
 
         # Response error check
         if wml_details.status_code == 200:
@@ -239,7 +239,7 @@ class ServiceHandler:
             return wml_details['name'], \
                 wml_details['crn'], \
                 ENDPOINT_URL.format(wml_details['region_id'])
-                
+
         else:
             print("[DEBUG] Failing with status code:",
                   wml_details.status_code)

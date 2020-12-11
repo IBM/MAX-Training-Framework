@@ -185,7 +185,8 @@ class WMLWrapper:
             definition_uid = self.client.model_definitions.get_id(definition_details)
             debug('definition_id:', definition_uid)
 
-            training_configuration_metadata[self.client.training.ConfigurationMetaNames.MODEL_DEFINITION]['id'] = definition_uid
+            training_configuration_metadata[self.client.training.ConfigurationMetaNames.MODEL_DEFINITION]['id'] = \
+                definition_uid
 
             debug('training config metadata:', training_configuration_metadata)
             # Train model

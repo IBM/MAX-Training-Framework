@@ -17,7 +17,6 @@
 import os
 import sys
 import uuid
-import inspect
 import ruamel.yaml
 from max_training_framework.setup.token_generate import TokenGenerate
 from max_training_framework.setup.service_handling import ServiceHandler
@@ -126,9 +125,9 @@ def do_setup():
         (cfg_inp_bucket, cfg_out_bucket, cfg_loc_path, cfg_cmp_config,
             cfg_key_prefix) = yaml_handle('Y', '', '', '', '')
         yaml_handler = YAMLHandler(cfg_inp_bucket, cfg_out_bucket,
-                                    cfg_loc_path, cfg_cmp_config,
-                                    access_key, secret_access_key,
-                                    cfg_key_prefix)
+                                   cfg_loc_path, cfg_cmp_config,
+                                   access_key, secret_access_key,
+                                   cfg_key_prefix)
         input_bucket_name, local_directory = yaml_handler.input_bucket_handle()
         result_bucket_name = \
             yaml_handler.result_bucket_handle(input_bucket_name)
@@ -145,9 +144,9 @@ def do_setup():
         Compute configuration       : {}
 
         """.format(input_bucket_name,
-                    local_directory,
-                    result_bucket_name,
-                    compute_config)
+                   local_directory,
+                   result_bucket_name,
+                   compute_config)
 
         print(summary)
 
@@ -173,41 +172,41 @@ def do_setup():
 
     3. Run `{} {} package` to train the model using your data.
             """.format(apikey,
-                        space_id,
-                        url,
-                        access_key,
-                        secret_access_key,
-                        os_run_cmd,
-                        sys.argv[1],
-                        os_run_cmd,
-                        sys.argv[1])
+                       space_id,
+                       url,
+                       access_key,
+                       secret_access_key,
+                       os_run_cmd,
+                       sys.argv[1],
+                       os_run_cmd,
+                       sys.argv[1])
             print(next_steps)
         sys.exit()
 
     def configure_instances():
 
         resource_id_display = \
-        """
-        *-------------------------------------------------------------------------*
-        |                                                                         |
-        |   Retrieving your IBM resource group information.                       |
-        |                                                                         |
-        |   A resource group is used to organize your IBM Cloud resources, such   |
-        |   as AI and storage services.                                           |
-        |                                                                         |
-        *-------------------------------------------------------------------------*
-        """
+            """
+            *-------------------------------------------------------------------------*
+            |                                                                         |
+            |   Retrieving your IBM resource group information.                       |
+            |                                                                         |
+            |   A resource group is used to organize your IBM Cloud resources, such   |
+            |   as AI and storage services.                                           |
+            |                                                                         |
+            *-------------------------------------------------------------------------*
+            """
 
         config_display = \
-        """
-        *-------------------------------------------------------------------------*
-        |                                                                         |
-        |  To train a MAX model using your own data, an instance of the           |
-        |  Watson Machine Learning service and an instance of the Cloud Object    |
-        |  service is required.                                                   |
-        |                                                                         |
-        *-------------------------------------------------------------------------*
-        """
+            """
+            *-------------------------------------------------------------------------*
+            |                                                                         |
+            |  To train a MAX model using your own data, an instance of the           |
+            |  Watson Machine Learning service and an instance of the Cloud Object    |
+            |  service is required.                                                   |
+            |                                                                         |
+            *-------------------------------------------------------------------------*
+            """
 
         # Pre-requisite check
         # Generating iam access token
@@ -221,7 +220,7 @@ def do_setup():
         resource_id = ins_obj.get_resources_id()
         ins_handle = InstanceHandler(iam_access_token)
         main_handle = MainHandler(resource_id, iam_access_token,
-                                    ins_obj, ins_handle)
+                                  ins_obj, ins_handle)
         #
         print(config_display)
 
@@ -235,7 +234,7 @@ def do_setup():
         try:
             # Retrieving COS details
             resource_instance_id, cos_apikey, access_key, \
-                secret_access_key, source_crn= \
+                secret_access_key, source_crn = \
                 main_handle.cos_block()
         except KeyError as ex:
             print(type(ex), '::', ex)
@@ -245,15 +244,14 @@ def do_setup():
         cloud_api_key = token_obj.get_apikey()
         space_handler = SpaceHandler(cloud_api_key, url)
         space_id = space_handler.create_space('MAX-' + str(uuid.uuid4()),
-                                                'Deployment Space for MAX',
-                                                wml_name,
-                                                wml_crn,
-                                                source_crn)
+                                              'Deployment Space for MAX',
+                                              wml_name,
+                                              wml_crn,
+                                              source_crn)
 
         # Updating config YAML file
         env_extract(access_key, secret_access_key, cloud_api_key, space_id, url)
         sys.exit()
-
 
     setup_goal = """
     Use this script to configure your environment for MAX model training:
@@ -303,8 +301,6 @@ def do_setup():
                   "file for initiating the training process")
             sys.exit()
 
-
-
     env_check = """
 
         *****    MODEL TRAINING ENVIRONMENT SETUP    *****
@@ -333,7 +329,7 @@ def do_setup():
     # Cloud Object Storage environment check flag
     cos_env_check_flag = 'Y'
     # Change setting flag
-    change_setting_flag = 'N'
+    # change_setting_flag = 'N'
     # Checking WML environment variables
     for env_var in ['ML_ENV', 'ML_APIKEY', 'ML_INSTANCE']:
         if os.environ.get(env_var) is None:
@@ -449,7 +445,6 @@ def do_setup():
             print(next_steps)
 
             sys.exit()
-
 
     configure_instances()
 

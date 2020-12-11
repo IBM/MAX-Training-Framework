@@ -29,7 +29,6 @@ class SpaceHandler:
         except Exception as ex:
             print(ex)
 
-
     def create_space(self, space_name, space_desc, wml_name, wml_crn, cos_crn):
 
         space_metadata = {
