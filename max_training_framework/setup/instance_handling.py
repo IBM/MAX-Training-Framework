@@ -44,9 +44,6 @@ class MainHandler:
         :return: WML environment variables such as apikey,
                  url and instance id.
         """
-        headers = {
-            'Authorization': self.iam_access_token,
-        }
         print('-------------------------------------------------------------'
               '------------------------')
         print('Choose an existing Watson Machine Learning service instance '
@@ -80,99 +77,21 @@ class MainHandler:
                 else:
                     break
             # create a new Watson Machine Learning instance using the provided
-            #  name, selected location,
-            # resource and plan id. Instance id is retrieved on successful
-            # completion of creation.
+            #  name, selected location, resource and plan id.
             wml_instance_guid = self.ins_obj.service_create(
                  wml_name, wml_location, self.resource_id,
                  wml_resource_plan_id)
-            print('----------------------------------------------------'
-                  '--------------------------')
-            print('Creating Watson Machine Learning service credentials ')
-            print('----------------------------------------------------'
-                  '--------------------------')
-            while True:
-                wml_key_name = input("[PROMPT] Enter a "
-                                     "service credentials name: ").strip()
-                if wml_key_name == '':
-                    continue
-                else:
-                    break
-            # WML key creation using user and credential retrieval
-            wml_apikey, instance_id, url = \
-                self.ins_obj.wml_key_create(wml_key_name, wml_instance_guid)
-            return wml_apikey, instance_id, url
+
         else:
             print("[MESSAGE] Using existing service instance '{}'. "
                   .format(existing_instances[int(instance_option) - 1]))
+            wml_instance_guid = existing_guids[int(instance_option) - 1]
 
-            message = """
-*----------------------------------------------------------------------------*
-|                                                                            |
-| Service credentials are used to access IBM Cloud services, such as         |
-| Watson Machine Learning.                                                   |
-|                                                                            |
-*----------------------------------------------------------------------------*
-            """
-            print(message)
-            print('----------------------------------------------------'
-                  '----------------------------------')
-            print('Choose existing Watson Machine Learning service '
-                  'credentials or create new credentials:')
-            print('----------------------------------------------------'
-                  '----------------------------------')
-            # Get existing keys and their guid.
-            existing_keys, key_option, existing_key_guid = \
-                self.ins_handle.wml_key_check(
-                    existing_guids[int(instance_option) - 1])
-            if existing_keys[int(key_option) - 1] == 'Create New Key':
-                print('-------------------------------------------------'
-                      '-----------------------------')
-                print('Creating Watson Machine Learning service credentials')
-                print('-------------------------------------------------'
-                      '-----------------------------')
-                while True:
-                    wml_key = input("[PROMPT] Enter a "
-                                    "service credentials name: ").strip()
-                    if wml_key == '':
-                        continue
-                    if wml_key in existing_keys:
-                        print("[MESSAGE] Service credentials name already "
-                              "taken. Please enter a different name.")
-                        continue
-                    else:
-                        break
-                # WML Key creation and credential retrieval
-                wml_apikey, instance_id, url = \
-                    self.ins_obj.wml_key_create(
-                        wml_key, existing_guids[int(instance_option) - 1])
-                return wml_apikey, instance_id, url
-            else:
-                print("[MESSAGE] Using existing Watson Machine Learning "
-                      "service credentials '{}'. "
-                      .format(existing_keys[int(key_option) - 1]))
-                # Retrieve details from the existing key details.
-                wml_key_details = requests.get(
-                    'https://resource-controller.cloud.ibm.com/v2/'
-                    'resource_keys/' + existing_key_guid[
-                        int(key_option) - 1], headers=headers)
-                if wml_key_details.status_code == 200:
-                    wml_key_details = wml_key_details.json()
-                    try:
-                        # Extract necessary environment variables from the
-                        # credentials.
-                        wml_apikey = \
-                            wml_key_details['credentials']['apikey']
-                        instance_id = \
-                            wml_key_details['credentials']['instance_id']
-                        url = \
-                            wml_key_details['credentials']['url']
-                        return wml_apikey, instance_id, url
-                    except KeyError:
-                        print(''''  ERROR !!!!    ''')
-                        raise KeyError("Choose appropriate Cloud Object "
-                                       "Storage guid corresponding to the"
-                                       " credentials name")
+        # Return WML name and crn to create deployment space
+        wml_name, wml_crn, wml_url = \
+            self.ins_obj.wml_request_resource_details(wml_instance_guid)
+        return wml_name, wml_crn, wml_url
+
 
     def cos_block(self):  # noqa
         """
@@ -238,9 +157,9 @@ class MainHandler:
                 if cos_key_name != '':
                     break
             # COS Key creation and environment variable retrieval
-            resource_instance_id, apikey, access_key, secret_access_key = \
+            resource_instance_id, apikey, access_key, secret_access_key, crn = \
                 self.ins_obj.cos_key_create(cos_key_name, cos_instance_guid)
-            return resource_instance_id, apikey, access_key, secret_access_key
+            return resource_instance_id, apikey, access_key, secret_access_key, crn
         else:
             print("[MESSAGE] Using existing Cloud Object Storage service "
                   "instance '{}'. "
@@ -274,12 +193,12 @@ class MainHandler:
                         else:
                             break
                     resource_instance_id, apikey,\
-                        access_key, secret_access_key = \
+                        access_key, secret_access_key, crn = \
                         self.ins_obj.cos_key_create(
                             cos_key,
                             existing_guids[int(instance_option) - 1])
                     return resource_instance_id, apikey, \
-                        access_key, secret_access_key
+                        access_key, secret_access_key, crn
                 else:
                     print("[MESSAGE] Using existing Cloud Object Storage "
                           "service credentials '{}'. "
@@ -309,8 +228,10 @@ class MainHandler:
                                 obj_key_details.get('credentials')\
                                                .get('cos_hmac_keys')\
                                                .get('secret_access_key')
+                            crn = \
+                                obj_key_details.get('source_crn')
                             return resource_instance_id, apikey, \
-                                access_key, secret_access_key
+                                access_key, secret_access_key, crn
                         except KeyError:
                             print("[MESSAGE] Unable to find HMAC keys."
                                   "The service credential can not be used."

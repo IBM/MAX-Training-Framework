@@ -141,7 +141,7 @@ def do_train():
         print_banner('Checking environment variables ...')
         var_missing = False
         # WML environment variables
-        for var_name in ['ML_ENV', 'ML_APIKEY', 'ML_INSTANCE']:
+        for var_name in ['ML_APIKEY']:
             if os.environ.get(var_name) is None:
                 print(' Error. Environment variable {} is not defined.'
                       .format(var_name))
@@ -213,7 +213,7 @@ def do_train():
             # instantiate Watson Machine Learning wrapper
             w = WMLWrapper(os.environ['ML_ENV'],
                            os.environ['ML_APIKEY'],
-                           os.environ['ML_INSTANCE'])
+                           os.environ['SPACE_ID'])
 
             # verify that the provided training id is valid
             if not w.is_known_training_id(training_guid):
@@ -516,55 +516,62 @@ def do_train():
 
         try:
             # instantiate the WML client
-            w = WMLWrapper(os.environ['ML_ENV'],
-                           os.environ['ML_APIKEY'],
-                           os.environ['ML_INSTANCE'])
+            if 'ML_INSTANCE' in os.environ:
+                # For old V1 instances
+                w = WMLWrapper(os.environ['ML_ENV'],
+                               os.environ['ML_APIKEY'],
+                               os.environ['SPACE_ID'],
+                               os.environ['ML_INSTANCE'])
+            else:
+                w = WMLWrapper(os.environ['ML_ENV'],
+                               os.environ['ML_APIKEY'],
+                               os.environ['SPACE_ID'])
         except WMLWrapperError as wmle:
             print(wmle)
             sys.exit(ExitCode.PRE_PROCESSING_FAILED.value)
-
         # define training metadata
         model_definition_metadata = {
-            w.get_client().repository.DefinitionMetaNames.NAME:
+            w.get_client().model_definitions.ConfigurationMetaNames.NAME:
                 config['training_run_name'],
-            w.get_client().repository.DefinitionMetaNames.DESCRIPTION:
+            w.get_client().model_definitions.ConfigurationMetaNames.DESCRIPTION:
                 config['training_run_description'],
-            w.get_client().repository.DefinitionMetaNames.AUTHOR_NAME:
-                config['author_name'],
-            w.get_client().repository.DefinitionMetaNames.FRAMEWORK_NAME:
-                config['framework_name'],
-            w.get_client().repository.DefinitionMetaNames.FRAMEWORK_VERSION:
-                config['framework_version'],
-            w.get_client().repository.DefinitionMetaNames.RUNTIME_NAME:
-                config['runtime_name'],
-            w.get_client().repository.DefinitionMetaNames.RUNTIME_VERSION:
-                config['runtime_version'],
-            w.get_client().repository.DefinitionMetaNames.EXECUTION_COMMAND:
-                config['training_run_execution_command']
+            w.get_client().model_definitions.ConfigurationMetaNames.PLATFORM: {
+                'name': config['runtime_name'],
+                'versions': [config['runtime_version']]
+            },
+            w.get_client().model_definitions.ConfigurationMetaNames.VERSION: "1.0"
         }
 
         training_configuration_metadata = {
             w.get_client().training.ConfigurationMetaNames.NAME:
                 config['training_run_name'],
-            w.get_client().training.ConfigurationMetaNames.AUTHOR_NAME:
-                config['author_name'],
             w.get_client().training.ConfigurationMetaNames.DESCRIPTION:
                 config['training_run_description'],
+            w.get_client().training.ConfigurationMetaNames.MODEL_DEFINITION: {
+                'command': config['training_run_execution_command'],
+                'hardware_spec': {
+                    'name': config['training_run_compute_configuration_name']
+                },
+                'software_spec': {
+                    'name': f"{config['framework_name']}_{config['framework_version']}-py3.6"
+                },
+                'parameters': {
+                    'name': config['training_run_name'],
+                    'description': config['training_run_description']
+                }
+            },
             w.get_client().training.ConfigurationMetaNames
-            .COMPUTE_CONFIGURATION:
-                {'name': config['training_run_compute_configuration_name']},
-            w.get_client().training.ConfigurationMetaNames
-            .TRAINING_DATA_REFERENCE: {
+            .TRAINING_DATA_REFERENCES: [{
                 'connection': {
                     'endpoint_url': config['cos_endpoint_url'],
                     'access_key_id': os.environ['AWS_ACCESS_KEY_ID'],
                     'secret_access_key': os.environ['AWS_SECRET_ACCESS_KEY']
                 },
-                'source': {
+                'location': {
                     'bucket': config['training_bucket'],
                 },
                 'type': 's3'
-            },
+            }],
             w.get_client().training.ConfigurationMetaNames
             .TRAINING_RESULTS_REFERENCE: {
                 'connection': {
@@ -572,7 +579,7 @@ def do_train():
                     'access_key_id': os.environ['AWS_ACCESS_KEY_ID'],
                     'secret_access_key': os.environ['AWS_SECRET_ACCESS_KEY']
                 },
-                'target': {
+                'location': {
                     'bucket': config['results_bucket'],
                 },
                 'type': 's3'
@@ -645,8 +652,9 @@ def do_train():
                     # training completed successfully
                     print('\nTraining completed.')
                     training_in_progress = False
-                elif training_status == 'error':
+                elif training_status == 'error' or training_status == 'failed':
                     print('\nTraining failed.')
+                    print(status['failure']['errors'][0]['message'])
                     # training ended with error
                     training_in_progress = False
                 elif training_status == 'canceled':
@@ -726,7 +734,7 @@ def do_train():
         cw.download_file(results_references['bucket'],
                          TRAINING_LOG_NAME,
                          config['local_download_directory'],
-                         results_references['model_location'])
+                         results_references['logs'])
 
         if training_status in ['error', 'canceled']:
             # Training ended with an error or was canceled.
@@ -763,7 +771,7 @@ def do_train():
         cw.download_file(results_references['bucket'],
                          TRAINING_OUTPUT_ARCHIVE_NAME,
                          config['local_download_directory'],
-                         results_references['model_location'])
+                         results_references['logs'])
 
     except Exception as ex:
         print('Error. Trained model archive "{}" could not be '

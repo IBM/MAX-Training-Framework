@@ -100,7 +100,7 @@ class ServiceHandler:
         # WML available deployment locations.
         wml_deployment_location = ['eu-de', 'us-south']
         # WML available plans
-        wml_plans = ['wml-lite', 'wml-professional', 'wml-standard']
+        wml_plans = ['wml-lite', 'wml-professional', 'wml-standard-v2']
         print("[MESSAGE] Choose a deployment location for this new instance.")
         for i, v in enumerate(wml_deployment_location, start=1):
             print('{:2d}. {}'.format(i, v))
@@ -214,8 +214,44 @@ class ServiceHandler:
             print("[DEBUG] Reason for failure:", response.reason)
             sys.exit()
 
+    def wml_request_resource_details(self, wml_instance_guid):
+        """
+        Request WML resource details through resource API
+        :param wml_instance_guid: wml instance guid
+        :return: WML instance name, crn and url.
+                 Exit on error in detail retrieval.
+        """
+        headers = {
+            'Authorization': self.iam_access_token,
+        }
+
+        ENDPOINT_URL = "https://{}.ml.cloud.ibm.com"
+
+        # Get instance details
+        wml_details = requests.get('https://resource-controller.'
+                                   'cloud.ibm.com/v2/resource_instances/{}'
+                                   .format(wml_instance_guid),
+                                   headers=headers)
+
+        # Response error check
+        if wml_details.status_code == 200:
+            wml_details = wml_details.json()
+            return wml_details['name'], \
+                wml_details['crn'], \
+                ENDPOINT_URL.format(wml_details['region_id'])
+
+        else:
+            print("[DEBUG] Failing with status code:",
+                  wml_details.status_code)
+            print("[DEBUG] Reason for failure:",
+                  wml_details.reason)
+            sys.exit()
+
+    # def cos_request_resource_details(self, instance_id)
+
     def wml_key_create(self, wml_key_name, wml_instance_guid):
         """
+        DEPRECATED: New WML Instances will use a user's APIKEY
         Create Watson Machine Learning key
         :param wml_key_name: new WML key name to be created
         :param wml_instance_guid: wml instance guid
@@ -227,7 +263,7 @@ class ServiceHandler:
         }
         data_wml = {
             "name": wml_key_name,
-            "source": wml_instance_guid,
+            "source": wml_instance_guid
         }
         # Instance create
         wml_key_response = requests.post('https://resource-controller.'
@@ -253,8 +289,8 @@ class ServiceHandler:
         Create Cloud Object Storage key
         :param cos_key_name: new COS key name.
         :param cos_instance_guid: COS instance id
-        :return: instance id, apikey, access key id and secret
-        access key. Exit on error in key creation.
+        :return: instance id, apikey, access key id, secret
+                 access key, and cloud resource name.
                  Exit on error in key creation.
         """
         hmac_value = True
@@ -282,7 +318,8 @@ class ServiceHandler:
                 cos_key_response['credentials']['cos_hmac_keys'][
                        'access_key_id'], \
                 cos_key_response['credentials']['cos_hmac_keys'][
-                       'secret_access_key']
+                       'secret_access_key'], \
+                cos_key_response['source_crn']
         else:
             print("[DEBUG] Failing with status code:",
                   cos_key_response.status_code)

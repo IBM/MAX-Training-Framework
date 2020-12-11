@@ -37,6 +37,19 @@ class TokenGenerate:
         self.prompt = "[PROMPT] Enter IBM Cloud API Key " \
                       "JSON file location: "
 
+        self.apikey = None
+
+    def get_apikey(self):
+        """
+        This function returns the cloud API key after the iam access
+        token has been generated.
+        :return: cloud API key
+        """
+        if not self.apikey:
+            raise RuntimeError('Token has not been generated from a valid apikey yet.')
+        else:
+            return self.apikey
+
     def get_api_location(self):
         """
         This function get cloud API key JSON file name from user
@@ -102,6 +115,7 @@ class TokenGenerate:
                         """
                         print(iam_display)
                         iam_access_token = generate_token(api_key_value)
+                        self.apikey = api_key_value
                         break
                 except Exception as e:
                     print("[MESSAGE] The file could not be processed: {}"
