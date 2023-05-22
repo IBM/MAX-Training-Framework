@@ -19,7 +19,7 @@ setup(
     'watson-machine-learning-client==1.0.371',
     'ibm-cos-sdk==2.4.4',
     'ruamel.yaml==0.15.74',
-    'requests==2.21.0'
+    'requests==2.31.0'
   ],
   include_package_data=True,
   classifiers=[
